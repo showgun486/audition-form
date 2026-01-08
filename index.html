@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マッコイ斉藤プロデュース 新アイドルオーディション</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: #fff;
+        }
+
+        /* ヘッダー */
+        header {
+            background: linear-gradient(135deg, #73f79c 0%, #5de88a 100%);
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            max-width: 200px;
+            height: auto;
+        }
+
+        nav {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        nav a:hover {
+            background: rgba(255,255,255,0.4);
+        }
+
+        /* コンテナ */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* セクション */
+        .section {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* トップページ */
+        .hero {
+            background: linear-gradient(135deg, #73f79c 0%, #5de88a 100%);
+            padding: 40px 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 30px;
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(115,247,156,0.3);
+        }
+
+        .hero h1 {
+            font-size: 24px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .hero .subtitle {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .content-box {
+            background: #fff;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            border-left: 5px solid #73f79c;
+        }
+
+        .content-box h2 {
+            color: #73f79c;
+            font-size: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .content-box p, .content-box ul {
+            font-size: 15px;
+            line-height: 1.9;
+            margin-bottom: 12px;
+        }
+
+        .content-box ul {
+            padding-left: 20px;
+        }
+
+        .content-box li {
+            margin-bottom: 10px;
+        }
+
+        /* ボタン */
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #73f79c 0%, #5de88a 100%);
+            color: #fff;
+            padding: 18px 50px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 18px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(115,247,156,0.4);
+            border: none;
+            cursor: pointer;
+            text-align: center;
+            margin: 20px auto;
+            display: block;
+            max-width: 300px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(115,247,156,0.5);
+        }
+
+        /* 応募条件 */
+        .condition-item {
+            background: #f8fff9;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            border: 2px solid #73f79c;
+        }
+
+        .condition-item h3 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 12px;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .condition-item h3::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #73f79c;
+            font-weight: bold;
+        }
+
+        .condition-item ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .condition-item li {
+            padding: 8px 0;
+            padding-left: 20px;
+            position: relative;
+            font-size: 15px;
+        }
+
+        .condition-item li::before {
+            content: '・';
+            position: absolute;
+            left: 0;
+            color: #73f79c;
+            font-weight: bold;
+        }
+
+        /* フォーム */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 15px;
+        }
+
+        .required {
+            color: #ff4444;
+            margin-left: 4px;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group input[type="tel"],
+        .form-group input[type="date"],
+        .form-group input[type="number"],
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #73f79c;
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-group .hint {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .radio-group, .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .radio-group label, .checkbox-group label {
+            font-weight: normal;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        input[type="radio"],
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #73f79c;
+        }
+
+        .submit-btn {
+            width: 100%;
+            max-width: 400px;
+            margin: 30px auto;
+            display: block;
+        }
+
+        .success-message {
+            display: none;
+            background: #73f79c;
+            color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .success-message h2 {
+            font-size: 22px;
+            margin-bottom: 15px;
+        }
+
+        /* スマホ対応 */
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+
+            .hero {
+                padding: 30px 20px;
+            }
+
+            .hero h1 {
+                font-size: 20px;
+            }
+
+            .hero .subtitle {
+                font-size: 18px;
+            }
+
+            .content-box {
+                padding: 20px;
+            }
+
+            .content-box h2 {
+                font-size: 18px;
+            }
+
+            .content-box p, .content-box ul {
+                font-size: 14px;
+            }
+
+            .btn {
+                padding: 15px 40px;
+                font-size: 16px;
+            }
+
+            nav a {
+                font-size: 13px;
+                padding: 6px 12px;
+            }
+
+            .logo {
+                max-width: 160px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="image/logo_showgun_top.png" alt="SHOW-GUN" class="logo">
+        <nav>
+            <a href="#" onclick="showSection('top'); return false;">トップ</a>
+            <a href="#" onclick="showSection('conditions'); return false;">応募条件</a>
+            <a href="#" onclick="showSection('form'); return false;">応募フォーム</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <!-- トップページ -->
+        <section id="top" class="section active">
+            <div class="hero">
+                <h1>マッコイ斉藤プロデュース<br>新アイドルオーディション<br>開催！</h1>
+                <p class="subtitle">「田舎出身」だからこそ、<br>主役になれる。</p>
+            </div>
+
+            <div class="content-box">
+                <p>『とんねるずのみなさんのおかげでした』『貴ちゃんねるず』など数々の伝説番組を手がけてきた演出家・マッコイ斉藤が仕掛ける<br><strong>【新プロジェクト】</strong>が始動。</p>
+                <p>今回のテーマは──<strong>「田舎 × アイドル革命」</strong></p>
+                <p>都会に憧れ、田舎で育ち、泥臭く夢を追ってきたあなたの"人生そのもの"がコンテンツになるリアルドキュメント型アイドルオーディションです。</p>
+            </div>
+
+            <div class="content-box">
+                <h2>📺 企画概要</h2>
+                <ul>
+                    <li>マッコイ斉藤が<strong>演出・出演</strong>するドキュメンタリー番組</li>
+                    <li>スカパー！／TV神奈川／各配信プラットフォームで展開予定</li>
+                    <li>YouTube／TikTok／X などSNSでも随時配信</li>
+                    <li>番組連動で<strong>アイドルユニットとしてデビュー</strong>（最終選抜：8名）</li>
+                </ul>
+            </div>
+
+            <div class="content-box">
+                <h2>🎤 活動スケジュール（予定）</h2>
+                <ul>
+                    <li><strong>12月</strong>：書類選考／オンライン・対面オーディション</li>
+                    <li><strong>1月</strong>：本選オーディション（自己PR・特技・インタビュー）</li>
+                    <li><strong>2月</strong>：歌唱・ダンス・SNSレッスン開始</li>
+                    <li><strong>3月</strong>：LIVE出演／MV撮影／番組放送スタート</li>
+                </ul>
+                <p style="font-size: 13px; color: #666; margin-top: 10px;">※進行状況により変更の可能性あり</p>
+            </div>
+
+            <a href="#" onclick="showSection('form'); return false;" class="btn">ENTRY</a>
+        </section>
+
+        <!-- 応募条件 -->
+        <section id="conditions" class="section">
+            <div class="hero">
+                <h1>応募条件</h1>
+            </div>
+
+            <div class="condition-item">
+                <h3>📝 募集条件</h3>
+                <ul>
+                    <li>18〜29歳くらいの女性</li>
+                    <li>地方（都会ではない市町村・群など）出身の"田舎娘"であること（現住所は全国どこでも可）</li>
+                    <li>芸能未経験OK（経験者も歓迎）</li>
+                    <li>学生／フリーター／所属事務所あり／フリーいずれも応募可能<br>
+                    <span style="font-size: 13px;">※所属者は所属事務所の事前許可を得てから応募してください</span></li>
+                    <li>未成年の方は保護者の同意が必要です</li>
+                </ul>
+            </div>
+
+            <div class="condition-item">
+                <h3>✅ 活動条件</h3>
+                <ul>
+                    <li>ポコチャ、TikTok LIVEなどのライブ配信を継続的に行えること</li>
+                    <li>X、Instagramを開設し、番組活動・日常の発信ができること</li>
+                    <li>番組の課題や撮影、SNS投稿などへ積極的に参加できること</li>
+                    <li>合宿・撮影・リハーサル等のスケジュールに柔軟に対応できること</li>
+                </ul>
+            </div>
+
+            <div class="condition-item">
+                <h3>🙅‍♂️ NG条件</h3>
+                <ul>
+                    <li>反社会的勢力に関与している方</li>
+                    <li>アダルトビデオ（AV）出演を含む、アダルト・風俗関連の経験がある方</li>
+                    <li>法令違反・公序良俗に反する行為を行った方</li>
+                    <li>虚偽申告・無断欠席など、業務遂行に支障がある方</li>
+                    <li>個人でアイドル活動を行っている方（別事務所への所属は可）</li>
+                </ul>
+            </div>
+
+            <div class="content-box" style="text-align: center; background: #f8fff9; border: none;">
+                <p style="font-size: 16px; font-weight: bold; color: #333;">「今は東京にいる」「芸能経験がない」<br>それでも問題ありません。</p>
+            </div>
+
+            <a href="#" onclick="showSection('form'); return false;" class="btn">ENTRY</a>
+        </section>
+
+        <!-- 応募フォーム -->
+        <section id="form" class="section">
+  <div class="hero">
+    <h1>応募フォーム</h1>
+  </div>
+
+  <div class="success-message" id="successMessage">
+    <h2>✅ 応募ありがとうございます！</h2>
+    <p>応募内容を受け付けました。<br>担当者より後日ご連絡いたします。</p>
+  </div>
+
+  <form
+    id="auditionForm"
+    method="POST"
+    enctype="multipart/form-data"
+    action="https://script.google.com/macros/s/AKfycbwEvzfi_B1vQDIhqIS3UJqyjvsmdJnXyeHWfaC0tUOh_XBawNDJ4BpxFXd36yfJP3Iw/exec"
+    target="hidden_iframe"
+    onsubmit="setTimeout(showSuccess, 1000)"
+  >
+                <div class="form-group">
+                    <label>お名前（フルネーム）<span class="required">*</span></label>
+                    <input type="text" name="fullname" required placeholder="例: 山田 太郎">
+                </div>
+
+                <div class="form-group">
+                    <label>お名前（ふりがな）<span class="required">*</span></label>
+                    <input type="text" name="furigana" required placeholder="例: やまだ たろう">
+                </div>
+
+                <div class="form-group">
+                    <label>生年月日<span class="required">*</span></label>
+                    <input type="date" name="birthdate" required>
+                </div>
+
+                <div class="form-group">
+                    <label>現在の年齢<span class="required">*</span></label>
+                    <input type="number" name="age" required min="18" max="99">
+                </div>
+
+                <div class="form-group">
+                    <label>性別<span class="required">*</span></label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="gender" value="男性" required> 男性</label>
+                        <label><input type="radio" name="gender" value="女性"> 女性</label>
+                        <label><input type="radio" name="gender" value="不回答"> 不回答</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>メールアドレス<span class="required">*</span></label>
+                    <input type="email" name="email" required>
+                    <div class="hint">普段使用している、連絡のつくメールアドレスを入力してください。</div>
+                </div>
+
+                <div class="form-group">
+                    <label>携帯電話番号</label>
+                    <input type="tel" name="phone" placeholder="例: 080-1234-5678">
+                </div>
+
+                <div class="form-group">
+                    <label>現在の住まい<span class="required">*</span></label>
+                    <input type="text" name="current_address" required placeholder="例: 東京都目黒区 / 大阪府堺市 / 福岡県福岡市">
+                </div>
+
+                <div class="form-group">
+                    <label>ご出身（市町村レベルまで）<span class="required">*</span></label>
+                    <input type="text" name="hometown" required placeholder="例: 青森県田舎館村 / 岐阜県高山市 / 長崎県小値賀町">
+                </div>
+
+                <div class="form-group">
+                    <label>現在の職業を教えてください。</label>
+                    <input type="text" name="occupation" placeholder="例: 大学生 / フリーター / 会社員 / アルバイト / 無職 / その他">
+                </div>
+
+                <div class="form-group">
+                    <label>現在芸能事務所に所属していますか？<span class="required">*</span></label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="has_agency" value="はい" required onclick="document.getElementById('agencyName').style.display='block'"> はい</label>
+                        <label><input type="radio" name="has_agency" value="いいえ" onclick="document.getElementById('agencyName').style.display='none'"> いいえ</label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="agencyName" style="display: none;">
+                    <label>【所属している方のみ】所属事務所名を記載してください。</label>
+                    <input type="text" name="agency_name" placeholder="例: ○○プロダクション">
+                </div>
+
+                <div class="form-group">
+                    <label>身長を教えてください。<span class="required">*</span></label>
+                    <input type="text" name="height" required placeholder="例: 160cm">
+                </div>
+
+                <div class="form-group">
+                    <label>スリーサイズを教えてください。<span class="required">*</span></label>
+                    <input type="text" name="measurements" required placeholder="例: B86cm / W60cm / H92cm">
+                </div>
+
+                <div class="form-group">
+                    <label>過去・現在を含めて芸能活動やアイドル活動の経験はありますか？<span class="required">*</span></label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="has_experience" value="あり" required onclick="document.getElementById('experienceUrl').style.display='block'"> あり</label>
+                        <label><input type="radio" name="has_experience" value="なし" onclick="document.getElementById('experienceUrl').style.display='none'"> なし</label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="experienceUrl" style="display: none;">
+                    <label>【活動経験がある方のみ】出演実績が分かる動画のURLをご記載ください。（複数可）</label>
+                    <textarea name="experience_url" placeholder="URLを入力してください（複数ある場合は改行で区切ってください）"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>InstagramアカウントのURLをご記入ください。</label>
+                    <input type="text" name="instagram" placeholder="※「@」は入力せず、ユーザー名のみご記入ください。">
+                    <div class="hint">※アカウントをお持ちでない場合は「なし」とご回答ください。</div>
+                </div>
+
+                <div class="form-group">
+                    <label>TikTokアカウントのURLをご記入ください。</label>
+                    <input type="text" name="tiktok" placeholder="※「@」は入力せず、ユーザー名のみご記入ください。">
+                    <div class="hint">※アカウントをお持ちでない場合は「なし」とご回答ください。</div>
+                </div>
+
+                <div class="form-group">
+                    <label>XアカウントのURLをご記入ください。</label>
+                    <input type="text" name="twitter" placeholder="※「@」は入力せず、ユーザー名のみご記入ください。">
+                    <div class="hint">※アカウントをお持ちでない場合は「なし」とご回答ください。</div>
+                </div>
+
+                <div class="form-group">
+                    <label>YouTubeチャンネルのURLをご記入ください。</label>
+                    <input type="text" name="youtube" placeholder="※アカウントをお持ちでない場合は「なし」とご回答ください。">
+                </div>
+
+                <div class="form-group">
+                    <label>「地元の田舎ぶり」がわかるエピソードを「最低3つ」教えてください。<span class="required">*</span></label>
+                    <textarea name="rural_episodes" required placeholder="例）高校の通学はチャリで2時間。最寄りのコンビニまで車で30分。など"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>家族構成と、ご家族の自慢ポイントを教えてください。<span class="required">*</span></label>
+                    <textarea name="family" required placeholder="例）父、母、妹との4人家族です。祖父母も近くに住んでいてとても家族仲がいいです。"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>オーディション合格後、最低1年間芸能活動に専念できますか？<span class="required">*</span></label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="can_commit" value="はい" required> はい</label>
+                        <label><input type="radio" name="can_commit" value="いいえ"> いいえ</label>
+                        <label><input type="radio" name="can_commit" value="調整可能"> 調整可能</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>選抜に合格後、個人または他アイドルグループでの活動はできませんが問題ありませんか？<span class="required">*</span></label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="exclusive_ok" value="はい" required> はい</label>
+                        <label><input type="radio" name="exclusive_ok" value="いいえ"> いいえ</label>
+                        <label><input type="radio" name="exclusive_ok" value="その他" onclick="document.getElementById('exclusiveOther').style.display='block'"> その他</label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="exclusiveOther" style="display: none;">
+                    <input type="text" name="exclusive_other" placeholder="その他の場合、詳細をご記入ください">
+                </div>
+
+                 <div class="form-group">
+      <label>上半身がわかる写真をアップロードしてください<span class="required">*</span></label>
+      <input type="file" accept="image/*" required
+        onchange="encodeFile(this,'photo_upper_base64')">
+      <input type="hidden" name="photo_upper_base64">
+    </div>
+
+                <div class="form-group">
+      <label>全身がわかる写真をアップロードしてください<span class="required">*</span></label>
+      <input type="file" accept="image/*" required
+        onchange="encodeFile(this,'photo_full_base64')">
+      <input type="hidden" name="photo_full_base64">
+    </div>
+
+                 <div class="form-group">
+      <label>その他、追加で提出したい写真があればアップロードしてください</label>
+      <input type="file" accept="image/*"
+        onchange="encodeFile(this,'photo_additional_base64')">
+      <input type="hidden" name="photo_additional_base64">
+    </div>
+
+    <div class="form-group">
+      <label>今後の活動への想いや、意気込みを自由にご記入ください</label>
+      <textarea name="message"></textarea>
+    </div>
+
+    <button type="submit" class="btn submit-btn">応募する</button>
+  </form>
+
+  <iframe name="hidden_iframe" style="display:none;"></iframe>
+</section>
+
+<script>
+function showSection(sectionId) {
+  document.querySelectorAll('.section')
+    .forEach(s => s.classList.remove('active'));
+  document.getElementById(sectionId).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function encodeFile(input, targetName) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const base64 = e.target.result.split(',')[1];
+    document.querySelector(
+      'input[name="' + targetName + '"]'
+    ).value = base64;
+  };
+  reader.readAsDataURL(file);
+}
+
+function showSuccess() {
+  document.getElementById('auditionForm').style.display = 'none';
+  document.getElementById('successMessage').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
