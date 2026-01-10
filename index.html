@@ -412,7 +412,7 @@
       <button type="submit" class="btn" id="submitBtn" disabled>応募する</button>
     </form>
 
-    <iframe name="hidden_iframe" style="display:none;"></iframe>
+<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
   </section>
 </div>
 
@@ -521,8 +521,12 @@
       return;
     }
 
-    if (!text) return;
-
+  if (!text) {
+  showError('送信結果を取得できませんでした。GASの実行ログを確認してください。');
+  document.getElementById('submitBtn').disabled = false;
+  return;
+}
+    
     try{
       const res = JSON.parse(text);
 
