@@ -222,9 +222,10 @@
     <form
       id="auditionForm"
       method="POST"
-      action="https://script.google.com/macros/s/AKfycbzpJSgA0_ZodgFki8IRetUcsc9XHuDaYTHXQ5NU-aLA3PXIBKdv9WR4vHv1vNxhe4Fa/exec"
+      action="https://script.google.com/macros/s/AKfycbz6gCzMG1LLYGJcZNKg50RIPQyo31H_drnki1geFHhGi6WZ9qr9v6mwH4S6pAcckAjU/exec"
       target="hidden_iframe"
     >
+      <input type="hidden" name="cf-turnstile-response" id="cf-turnstile-response">
       <!-- honeypot -->
       <input type="text" name="company" style="display:none" autocomplete="off" tabindex="-1" />
 
@@ -421,242 +422,47 @@
 </div>
 
 <script>
-  let submitted = false;
-  let turnstileToken = null;
-  let turnstileLoaded = false;
-
-  function showError(msg){
-    const box = document.getElementById('errorBox');
-    box.style.display = 'block';
-    box.textContent = msg;
-  }
-  function clearError(){
-    const box = document.getElementById('errorBox');
-    box.style.display = 'none';
-    box.textContent = '';
-  }
-
+  // セクション切替
   function showSection(id){
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    const target = document.getElementById(id);
-    if (target){
-      target.classList.add('active');
-      window.scrollTo(0,0);
-    }
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    const target=document.getElementById(id);
+    if(target) target.classList.add('active');
+    window.scrollTo(0,0);
   }
 
-  function toggleBlock(id, on){
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.style.display = on ? 'block' : 'none';
-  }
-
-  function encodeFile(fileInput, hiddenBase64Name, hiddenMimeName, statusId){
-    clearError();
-
-    const file = fileInput.files && fileInput.files[0];
-    const status = document.getElementById(statusId);
-
-    if (!file){
-      if (status) status.textContent = '未選択';
-      return;
-    }
-
-    const MAX_MB = 4;
-    const sizeMb = file.size / (1024 * 1024);
-    if (sizeMb > MAX_MB){
-      fileInput.value = '';
-      if (status) status.textContent = '未選択';
-      showError(`画像サイズが大きすぎます（上限 ${MAX_MB}MB）。別の画像を選んでください。`);
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = String(reader.result);
-      const parts = result.split(',');
-      if (parts.length < 2){
-        showError('画像の読み込みに失敗しました。別の画像でお試しください。');
-        return;
-      }
-
-      const header = parts[0];
-      const base64 = parts[1];
-      const mimeMatch = header.match(/^data:(.+?);base64$/);
-      const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
-
-      const base64Input = document.querySelector(`input[name="${hiddenBase64Name}"]`);
-      const mimeInput   = document.querySelector(`input[name="${hiddenMimeName}"]`);
-      if (base64Input) base64Input.value = base64;
-      if (mimeInput) mimeInput.value = mime;
-
-      if (status){
-        status.textContent = `選択済み：${file.name}（${sizeMb.toFixed(2)}MB）`;
-      }
-    };
-    reader.onerror = () => showError('画像の読み込みでエラーが発生しました。');
-    reader.readAsDataURL(file);
-  }
-
-  // ★★★ Turnstile コールバック ★★★
-  window.turnstileVerified = function (token) {
-    console.log('✅ Turnstile 認証成功:', token);
-    turnstileToken = token;
-    turnstileLoaded = true;
-    document.getElementById('submitBtn').disabled = false;
-    const status = document.getElementById('turnstileStatus');
-    if (status) {
-      status.textContent = '✅ 認証完了';
-      status.style.color = '#73f79c';
-    }
-    clearError();
+  // Turnstile callback
+  window.turnstileVerified = function(token){
+    document.getElementById('submitBtn').disabled=false;
+    document.getElementById('errorBox').style.display='none';
   };
 
-  window.turnstileError = function () {
-    console.error('❌ Turnstile エラー');
-    showError('セキュリティ認証に失敗しました。ページを再読み込みしてください。');
-    document.getElementById('submitBtn').disabled = true;
-  };
+  // フォーム送信
+  const form = document.getElementById('auditionForm');
+  const iframe = document.getElementById('hidden_iframe');
+  const successMessage = document.getElementById('successMessage');
+  const errorBox = document.getElementById('errorBox');
 
-  window.turnstileExpired = function () {
-    console.warn('⏰ Turnstile 期限切れ');
-    showError('セキュリティ認証の有効期限が切れました。もう一度認証してください。');
-    document.getElementById('submitBtn').disabled = true;
-    turnstileToken = null;
-  };
-
-  // ★★★ フォーム送信前のバリデーション ★★★
-  document.getElementById('auditionForm').addEventListener('submit', (e) => {
-    clearError();
-
-    // Turnstile トークンチェック
-    const tokenInput = document.querySelector('input[name="cf-turnstile-response"]');
-    if (!tokenInput || !tokenInput.value) {
-      e.preventDefault();
-      showError('セキュリティ認証が完了していません。チェックボックスをクリックしてください。');
-      return false;
-    }
-
-    // 必須画像のチェック
-    const upperBase64 = document.querySelector('input[name="photo_upper_base64"]');
-    const fullBase64 = document.querySelector('input[name="photo_full_base64"]');
-    
-    if (!upperBase64 || !upperBase64.value) {
-      e.preventDefault();
-      showError('上半身の写真をアップロードしてください。');
-      return false;
-    }
-    
-    if (!fullBase64 || !fullBase64.value) {
-      e.preventDefault();
-      showError('全身の写真をアップロードしてください。');
-      return false;
-    }
-
-    submitted = true;
-    document.getElementById('submitBtn').disabled = true;
-    document.getElementById('submitBtn').textContent = '送信中...';
-    
-    console.log('📤 フォーム送信開始');
-  });
-
-  function handleResponse(iframe){
-    if (!submitted) return;
-
-    let text = '';
-    try{
-      text = iframe.contentDocument?.body?.innerText || '';
-    }catch(e){
-      console.error('Response read error:', e);
-      showError('送信は完了した可能性がありますが、結果の読み取りに失敗しました。');
-      document.getElementById('submitBtn').disabled = false;
-      document.getElementById('submitBtn').textContent = '応募する';
-      return;
-    }
-
-    console.log('📥 GAS Response:', text);
-
-    if (!text) {
-      showError('送信結果を取得できませんでした。GASの実行ログを確認してください。');
-      document.getElementById('submitBtn').disabled = false;
-      document.getElementById('submitBtn').textContent = '応募する';
-      return;
-    }
-
-    try{
-      const res = JSON.parse(text);
-
-      if (res.status === 'ok'){
-        document.getElementById('auditionForm').style.display = 'none';
-        document.getElementById('successMessage').style.display = 'block';
-        window.scrollTo(0,0);
-      }else{
-        showError('送信に失敗しました：' + (res.reason || 'unknown'));
-        document.getElementById('submitBtn').disabled = false;
-        document.getElementById('submitBtn').textContent = '応募する';
-      }
-    }catch(e){
-      console.error('JSON parse error:', e);
-      showError('送信に失敗しました（不正なレスポンス）。GASのデプロイ設定をご確認ください。');
-      document.getElementById('submitBtn').disabled = false;
-      document.getElementById('submitBtn').textContent = '応募する';
-    }
-  }
-
-  document.getElementById('hidden_iframe').addEventListener('load', function () {
-    handleResponse(this);
-  });
-
-  // ★★★ Turnstile 読み込み確認（改善版） ★★★
-  function checkTurnstileLoaded() {
-    return new Promise((resolve) => {
-      let attempts = 0;
-      const maxAttempts = 20; // 10秒間チェック（0.5秒 × 20回）
-      
-      const checkInterval = setInterval(() => {
-        attempts++;
-        console.log(`🔍 Turnstile チェック試行 ${attempts}/${maxAttempts}`);
-        
-        const turnstileWidget = document.querySelector('.cf-turnstile');
-        const iframe = turnstileWidget?.querySelector('iframe');
-        
-        if (iframe) {
-          console.log('✅ Turnstile ウィジェット読み込み成功');
-          clearInterval(checkInterval);
-          
-          const status = document.getElementById('turnstileStatus');
-          if (status) {
-            status.textContent = 'チェックボックスをクリックして認証してください';
-            status.style.color = '#666';
-          }
-          
-          resolve(true);
-        } else if (attempts >= maxAttempts) {
-          console.error('❌ Turnstile ウィジェット読み込みタイムアウト');
-          clearInterval(checkInterval);
-          
-          // Sitekey と現在のURL情報を表示
-          console.error('Sitekey:', '0x4AAAAAACLq56whE3phbRo-');
-          console.error('Current URL:', window.location.href);
-          console.error('Current domain:', window.location.hostname);
-          
-          showError('セキュリティ認証ウィジェットの読み込みに失敗しました。\n\n考えられる原因：\n1. Cloudflare Turnstile の Sitekey が間違っている\n2. 現在のドメイン（' + window.location.hostname + '）が Cloudflare に登録されていない\n3. インターネット接続が不安定\n\nページを再読み込みするか、しばらく待ってから再度お試しください。');
-          
-          resolve(false);
+  form.addEventListener('submit', e=>{
+    e.preventDefault();
+    const formData = new FormData(form);
+    fetch(form.action, {method:'POST', body:formData})
+      .then(res=>res.json())
+      .then(data=>{
+        if(data.status==='ok'){
+          successMessage.style.display='block';
+          errorBox.style.display='none';
+          form.reset();
+          document.getElementById('submitBtn').disabled=true;
+        } else {
+          errorBox.style.display='block';
+          errorBox.textContent='送信失敗: '+data.reason;
         }
-      }, 500); // 0.5秒ごとにチェック
-    });
-  }
-
-  // ページ読み込み完了後にチェック開始
-  window.addEventListener('load', () => {
-    console.log('🌐 ページ読み込み完了');
-    console.log('🔍 Turnstile API:', typeof window.turnstile !== 'undefined' ? '読み込み済み' : '未読み込み');
-    console.log('🔍 Submit button disabled:', document.getElementById('submitBtn').disabled);
-    console.log('🔍 Current domain:', window.location.hostname);
-    
-    // Turnstile読み込みチェック開始
-    checkTurnstileLoaded();
+      })
+      .catch(err=>{
+        errorBox.style.display='block';
+        errorBox.textContent='通信エラー';
+        console.error(err);
+      });
   });
 </script>
 </body>
