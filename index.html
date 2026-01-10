@@ -342,7 +342,7 @@
             }
         }
     </style>
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
     <header>
@@ -452,8 +452,7 @@
   <form
     id="auditionForm"
     method="POST"
-    enctype="multipart/form-data"
-    action="https://script.google.com/macros/s/AKfycbw8OS3SfcYft5oCA7aJW_FyB0RM5E0Lz6vpAX99dHnY53-wqdUlanm0ltCtbAst8689/exec"
+    action="https://script.google.com/macros/s/AKfycbyhY3xTRuC1XDeM25nAO4z-u7Boc36xejpFUo3_fK5BmNyWkJeFBxlU2aM7cIBnRLam/exec"
     target="hidden_iframe"
   >
    <input type="text" name="company" style="display:none">
@@ -633,8 +632,10 @@
   data-sitekey="0x4AAAAAACLpxaRFTyg2h-wc"
   data-callback="turnstileVerified"
 ></div>
+      
+<input type="hidden" name="cf-turnstile-response" id="turnstileToken">
 
-<button
+    <button
   type="submit"
   class="btn submit-btn"
   id="submitBtn"
@@ -654,48 +655,35 @@ document.getElementById('auditionForm').addEventListener('submit', () => {
   submitted = true;
 });
 
+// Turnstile callback（超重要）
+function turnstileVerified(token) {
+  document.getElementById('turnstileToken').value = token;
+  document.getElementById('submitBtn').disabled = false;
+}
+
+// GAS からのレスポンス処理
 function handleResponse(iframe) {
   if (!submitted) return;
 
-  try {
-    const text = iframe.contentDocument.body.innerText;
-    const res = JSON.parse(text);
+  const text = iframe.contentDocument.body.innerText;
+  if (!text) return;
 
-    if (res.status === 'ok') {
-      document.getElementById('auditionForm').style.display = 'none';
-      document.getElementById('successMessage').style.display = 'block';
-      window.scrollTo(0, 0);
+  try {
+    const res = JSON.parse(iframe.contentDocument.body.innerText);
+
+    if (res.status === "ok") {
+      document.getElementById('auditionForm').style.display = "none";
+      document.getElementById('successMessage').style.display = "block";
+      window.scrollTo(0,0);
     } else {
-      alert('送信に失敗しました。入力内容をご確認ください。');
+      alert("送信に失敗しました：" + res.reason);
     }
   } catch (e) {
-    alert('送信エラーが発生しました。');
+    alert("送信エラーが発生しました");
   }
 }
-    function encodeFile(input, fieldName) {
-  const file = input.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = function () {
-    const base64 = reader.result.split(',')[1];
-    input.parentNode.querySelector(
-      `input[name="${fieldName}"]`
-    ).value = base64;
-  };
-  reader.readAsDataURL(file);
-}
-    function turnstileVerified() {
-  document.getElementById('submitBtn').disabled = false;
-}
-    function showSection(id) {
-  document.querySelectorAll('.section').forEach(sec => {
-    sec.classList.remove('active');
-  });
-  document.getElementById(id).classList.add('active');
-  window.scrollTo(0, 0);
-}
 </script>
+
 
 </body>
 </html>
