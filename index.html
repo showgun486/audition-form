@@ -453,10 +453,9 @@
     id="auditionForm"
     method="POST"
     enctype="multipart/form-data"
-    action="https://script.google.com/macros/s/AKfycbzyaq33GMxGeb1-Yn1FFper38gzWo7LUC_IvUQyKInv8tz44EsV5oCZNDmNQO-6fr0-/exec"
+    action="https://script.google.com/macros/s/AKfycbxKwaeKcmlzfFrDBpRMAATeB0vwpR9BSYi7isr5vG1vOgAkrTeJ11cgeocS4YKd9pLa/exec"
     target="hidden_iframe"
   >
-  <input type="hidden" name="token" value="showgun_2026_secret">
    <input type="text" name="company" style="display:none">
                 <div class="form-group">
                     <label>お名前（フルネーム）<span class="required">*</span></label>
@@ -633,36 +632,35 @@
     <button type="submit" class="btn submit-btn">応募する</button>
   </form>
 
-  <iframe name="hidden_iframe" style="display:none;"></iframe>
+  <iframe name="hidden_iframe" style="display:none;" onload="handleResponse(this)"></iframe>
 </section>
 
 <script>
-function showSection(sectionId) {
-  document.querySelectorAll('.section')
-    .forEach(s => s.classList.remove('active'));
-  document.getElementById(sectionId).classList.add('active');
-  window.scrollTo(0, 0);
-}
+let submitted = false;
 
-function encodeFile(input, targetName) {
-  const file = input.files[0];
-  if (!file) return;
+document.getElementById('auditionForm').addEventListener('submit', () => {
+  submitted = true;
+});
 
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const base64 = e.target.result.split(',')[1];
-    document.querySelector(
-      'input[name="' + targetName + '"]'
-    ).value = base64;
-  };
-  reader.readAsDataURL(file);
-}
+function handleResponse(iframe) {
+  if (!submitted) return;
 
-function showSuccess() {
-  document.getElementById('auditionForm').style.display = 'none';
-  document.getElementById('successMessage').style.display = 'block';
-  window.scrollTo(0, 0);
+  try {
+    const text = iframe.contentDocument.body.innerText;
+    const res = JSON.parse(text);
+
+    if (res.status === 'ok') {
+      document.getElementById('auditionForm').style.display = 'none';
+      document.getElementById('successMessage').style.display = 'block';
+      window.scrollTo(0, 0);
+    } else {
+      alert('送信に失敗しました。入力内容をご確認ください。');
+    }
+  } catch (e) {
+    alert('送信エラーが発生しました。');
+  }
 }
 </script>
+
 </body>
 </html>
