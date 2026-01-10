@@ -254,7 +254,6 @@
           <label><input type="radio" name="gender" value="女性" required> 女性</label>
           <label><input type="radio" name="gender" value="不回答"> 不回答</label>
         </div>
-        <div class="hint">※募集条件が女性のため、選択肢を整理しています（必要なら男性を戻せます）</div>
       </div>
 
       <div class="form-group">
@@ -445,8 +444,6 @@
     el.style.display = on ? 'block' : 'none';
   }
 
-  // 画像を base64 + mime として hidden に格納
-  // ※フォームは iframe POST なので multipart を使わず base64で送る
   function encodeFile(fileInput, hiddenBase64Name, hiddenMimeName, statusId){
     clearError();
 
@@ -458,8 +455,7 @@
       return;
     }
 
-    // サイズ上限（GAS/メール添付の現実的な安全値）
-    const MAX_MB = 4; // 必要なら調整
+    const MAX_MB = 4;
     const sizeMb = file.size / (1024 * 1024);
     if (sizeMb > MAX_MB){
       fileInput.value = '';
@@ -470,14 +466,14 @@
 
     const reader = new FileReader();
     reader.onload = () => {
-      const result = String(reader.result); // data:image/png;base64,xxxx
+      const result = String(reader.result);
       const parts = result.split(',');
       if (parts.length < 2){
         showError('画像の読み込みに失敗しました。別の画像でお試しください。');
         return;
       }
 
-      const header = parts[0]; // data:image/png;base64
+      const header = parts[0];
       const base64 = parts[1];
       const mimeMatch = header.match(/^data:(.+?);base64$/);
       const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
@@ -491,23 +487,21 @@
         status.textContent = `選択済み：${file.name}（${sizeMb.toFixed(2)}MB）`;
       }
     };
-
-    reader.onerror = () => {
-      showError('画像の読み込みでエラーが発生しました。');
-    };
-
+    reader.onerror = () => showError('画像の読み込みでエラーが発生しました。');
     reader.readAsDataURL(file);
   }
 
-  // Turnstile callback：成功したら送信ボタンを有効化
-  function turnstileVerified(){
+  // ★Turnstile callback は window に明示（ここが最重要）
+  window.turnstileVerified = function () {
     document.getElementById('submitBtn').disabled = false;
-  }
+  };
 
   document.getElementById('auditionForm').addEventListener('submit', () => {
     submitted = true;
     clearError();
     document.getElementById('submitBtn').disabled = true; // 二重送信防止
+    const sending = document.getElementById('sendingMsg');
+    if (sending) sending.style.display = 'block';
   });
 
   function handleResponse(iframe){
@@ -518,15 +512,20 @@
       text = iframe.contentDocument?.body?.innerText || '';
     }catch(e){
       showError('送信は完了した可能性がありますが、結果の読み取りに失敗しました。');
+      document.getElementById('submitBtn').disabled = false;
+      const sending = document.getElementById('sendingMsg');
+      if (sending) sending.style.display = 'none';
       return;
     }
 
-  if (!text) {
-  showError('送信結果を取得できませんでした。GASの実行ログを確認してください。');
-  document.getElementById('submitBtn').disabled = false;
-  return;
-}
-    
+    if (!text) {
+      showError('送信結果を取得できませんでした。GASの実行ログを確認してください。');
+      document.getElementById('submitBtn').disabled = false;
+      const sending = document.getElementById('sendingMsg');
+      if (sending) sending.style.display = 'none';
+      return;
+    }
+
     try{
       const res = JSON.parse(text);
 
@@ -539,15 +538,18 @@
         document.getElementById('submitBtn').disabled = false;
       }
     }catch(e){
-      // JSONじゃないものが返ってきた場合
       showError('送信に失敗しました（不正なレスポンス）。GASのデプロイ設定をご確認ください。');
       document.getElementById('submitBtn').disabled = false;
     }
+
+    const sending = document.getElementById('sendingMsg');
+    if (sending) sending.style.display = 'none';
   }
-  // iframe の load を JS で購読（CSP/グローバル問題回避）
-document.getElementById('hidden_iframe').addEventListener('load', function () {
-  handleResponse(this);
-});
+
+  // iframe load を購読
+  document.getElementById('hidden_iframe').addEventListener('load', function () {
+    handleResponse(this);
+  });
 </script>
 </body>
 </html>
