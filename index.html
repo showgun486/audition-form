@@ -453,7 +453,7 @@
     id="auditionForm"
     method="POST"
     enctype="multipart/form-data"
-    action="https://script.google.com/macros/s/AKfycbxKwaeKcmlzfFrDBpRMAATeB0vwpR9BSYi7isr5vG1vOgAkrTeJ11cgeocS4YKd9pLa/exec"
+    action="https://script.google.com/macros/s/AKfycbxAR3E2_bszyaoR7lK4yrtSFcnt1H3swbesaIAoIrcTLH9qYHAKH5escyxDF0fWDVv6/exec"
     target="hidden_iframe"
   >
    <input type="text" name="company" style="display:none">
@@ -628,8 +628,20 @@
       <label>今後の活動への想いや、意気込みを自由にご記入ください</label>
       <textarea name="message"></textarea>
     </div>
- <div class="cf-turnstile" data-sitekey="0x4AAAAAACLo1iBXVF6pHwhO"></div>
-    <button type="submit" class="btn submit-btn">応募する</button>
+<div
+  class="cf-turnstile"
+  data-sitekey="0x4AAAAAACLo1iBXVF6pHwhO"
+  data-callback="turnstileVerified"
+></div>
+
+<button
+  type="submit"
+  class="btn submit-btn"
+  id="submitBtn"
+  disabled
+>
+  応募する
+</button>
   </form>
 
   <iframe name="hidden_iframe" style="display:none;" onload="handleResponse(this)"></iframe>
@@ -672,6 +684,16 @@ function handleResponse(iframe) {
     ).value = base64;
   };
   reader.readAsDataURL(file);
+}
+    function turnstileVerified() {
+  document.getElementById('submitBtn').disabled = false;
+}
+    function showSection(id) {
+  document.querySelectorAll('.section').forEach(sec => {
+    sec.classList.remove('active');
+  });
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
 }
 </script>
 
