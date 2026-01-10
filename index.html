@@ -660,6 +660,19 @@ function handleResponse(iframe) {
     alert('送信エラーが発生しました。');
   }
 }
+    function encodeFile(input, fieldName) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function () {
+    const base64 = reader.result.split(',')[1];
+    input.parentNode.querySelector(
+      `input[name="${fieldName}"]`
+    ).value = base64;
+  };
+  reader.readAsDataURL(file);
+}
 </script>
 
 </body>
