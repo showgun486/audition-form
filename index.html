@@ -412,7 +412,7 @@
       <button type="submit" class="btn" id="submitBtn" disabled>応募する</button>
     </form>
 
-    <iframe name="hidden_iframe" style="display:none;" onload="handleResponse(this)"></iframe>
+    <iframe name="hidden_iframe" style="display:none;"></iframe>
   </section>
 </div>
 
@@ -540,6 +540,10 @@
       document.getElementById('submitBtn').disabled = false;
     }
   }
+  // iframe の load を JS で購読（CSP/グローバル問題回避）
+document.getElementById('hidden_iframe').addEventListener('load', function () {
+  handleResponse(this);
+});
 </script>
 </body>
 </html>
