@@ -404,19 +404,25 @@
       </div>
 
       <!-- Turnstile（標準の cf-turnstile-response を利用） -->
-      <div class="cf-turnstile"
-           data-sitekey="0x4AAAAAACLpxaRFTyg2h-wc"
-           data-callback="turnstileVerified"></div>
+      <div id="turnstile-container" style="margin: 20px 0;">
+        <div class="cf-turnstile"
+             data-sitekey="0x4AAAAAACLpxaRFTyg2h-wc"
+             data-callback="turnstileVerified"
+             data-error-callback="turnstileError"
+             data-expired-callback="turnstileExpired"></div>
+        <div class="file-status" id="turnstileStatus" style="color: #ff4444;">認証が必要です</div>
+      </div>
 
       <button type="submit" class="btn" id="submitBtn" disabled>応募する</button>
     </form>
 
-<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
   </section>
 </div>
 
 <script>
   let submitted = false;
+  let turnstileToken = null; // トークンを保存
 
   function showError(msg){
     const box = document.getElementById('errorBox');
@@ -491,17 +497,64 @@
     reader.readAsDataURL(file);
   }
 
-  // ★Turnstile callback は window に明示（ここが最重要）
-  window.turnstileVerified = function () {
+  // ★★★ Turnstile コールバック（修正版） ★★★
+  window.turnstileVerified = function (token) {
+    console.log('✅ Turnstile 認証成功:', token);
+    turnstileToken = token;
     document.getElementById('submitBtn').disabled = false;
+    const status = document.getElementById('turnstileStatus');
+    if (status) {
+      status.textContent = '✅ 認証完了';
+      status.style.color = '#73f79c';
+    }
   };
 
-  document.getElementById('auditionForm').addEventListener('submit', () => {
-    submitted = true;
+  window.turnstileError = function () {
+    console.error('❌ Turnstile エラー');
+    showError('セキュリティ認証に失敗しました。ページを再読み込みしてください。');
+    document.getElementById('submitBtn').disabled = true;
+  };
+
+  window.turnstileExpired = function () {
+    console.warn('⏰ Turnstile 期限切れ');
+    showError('セキュリティ認証の有効期限が切れました。もう一度認証してください。');
+    document.getElementById('submitBtn').disabled = true;
+    turnstileToken = null;
+  };
+
+  // ★★★ フォーム送信前のバリデーション ★★★
+  document.getElementById('auditionForm').addEventListener('submit', (e) => {
     clearError();
-    document.getElementById('submitBtn').disabled = true; // 二重送信防止
-    const sending = document.getElementById('sendingMsg');
-    if (sending) sending.style.display = 'block';
+
+    // Turnstile トークンチェック
+    const tokenInput = document.querySelector('input[name="cf-turnstile-response"]');
+    if (!tokenInput || !tokenInput.value) {
+      e.preventDefault();
+      showError('セキュリティ認証が完了していません。チェックボックスをクリックしてください。');
+      return false;
+    }
+
+    // 必須画像のチェック
+    const upperBase64 = document.querySelector('input[name="photo_upper_base64"]');
+    const fullBase64 = document.querySelector('input[name="photo_full_base64"]');
+    
+    if (!upperBase64 || !upperBase64.value) {
+      e.preventDefault();
+      showError('上半身の写真をアップロードしてください。');
+      return false;
+    }
+    
+    if (!fullBase64 || !fullBase64.value) {
+      e.preventDefault();
+      showError('全身の写真をアップロードしてください。');
+      return false;
+    }
+
+    submitted = true;
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('submitBtn').textContent = '送信中...';
+    
+    console.log('📤 フォーム送信開始');
   });
 
   function handleResponse(iframe){
@@ -511,18 +564,19 @@
     try{
       text = iframe.contentDocument?.body?.innerText || '';
     }catch(e){
+      console.error('Response read error:', e);
       showError('送信は完了した可能性がありますが、結果の読み取りに失敗しました。');
       document.getElementById('submitBtn').disabled = false;
-      const sending = document.getElementById('sendingMsg');
-      if (sending) sending.style.display = 'none';
+      document.getElementById('submitBtn').textContent = '応募する';
       return;
     }
+
+    console.log('📥 GAS Response:', text);
 
     if (!text) {
       showError('送信結果を取得できませんでした。GASの実行ログを確認してください。');
       document.getElementById('submitBtn').disabled = false;
-      const sending = document.getElementById('sendingMsg');
-      if (sending) sending.style.display = 'none';
+      document.getElementById('submitBtn').textContent = '応募する';
       return;
     }
 
@@ -536,19 +590,36 @@
       }else{
         showError('送信に失敗しました：' + (res.reason || 'unknown'));
         document.getElementById('submitBtn').disabled = false;
+        document.getElementById('submitBtn').textContent = '応募する';
       }
     }catch(e){
+      console.error('JSON parse error:', e);
       showError('送信に失敗しました（不正なレスポンス）。GASのデプロイ設定をご確認ください。');
       document.getElementById('submitBtn').disabled = false;
+      document.getElementById('submitBtn').textContent = '応募する';
     }
-
-    const sending = document.getElementById('sendingMsg');
-    if (sending) sending.style.display = 'none';
   }
 
-  // iframe load を購読
   document.getElementById('hidden_iframe').addEventListener('load', function () {
     handleResponse(this);
+  });
+
+  // ★★★ ページ読み込み時のデバッグ ★★★
+  window.addEventListener('load', () => {
+    console.log('🔍 Turnstile API loaded:', typeof window.turnstile !== 'undefined');
+    console.log('🔍 Submit button disabled:', document.getElementById('submitBtn').disabled);
+    
+    // 5秒後にTurnstileが読み込まれているか確認
+    setTimeout(() => {
+      const turnstileWidget = document.querySelector('.cf-turnstile');
+      const iframe = turnstileWidget?.querySelector('iframe');
+      console.log('🔍 Turnstile widget:', turnstileWidget);
+      console.log('🔍 Turnstile iframe:', iframe);
+      
+      if (!iframe) {
+        showError('セキュリティ認証ウィジェットの読み込みに失敗しました。ページを再読み込みしてください。');
+      }
+    }, 5000);
   });
 </script>
 </body>
