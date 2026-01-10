@@ -422,7 +422,8 @@
 
 <script>
   let submitted = false;
-  let turnstileToken = null; // トークンを保存
+  let turnstileToken = null;
+  let turnstileLoaded = false;
 
   function showError(msg){
     const box = document.getElementById('errorBox');
@@ -497,16 +498,18 @@
     reader.readAsDataURL(file);
   }
 
-  // ★★★ Turnstile コールバック（修正版） ★★★
+  // ★★★ Turnstile コールバック ★★★
   window.turnstileVerified = function (token) {
     console.log('✅ Turnstile 認証成功:', token);
     turnstileToken = token;
+    turnstileLoaded = true;
     document.getElementById('submitBtn').disabled = false;
     const status = document.getElementById('turnstileStatus');
     if (status) {
       status.textContent = '✅ 認証完了';
       status.style.color = '#73f79c';
     }
+    clearError();
   };
 
   window.turnstileError = function () {
@@ -604,22 +607,56 @@
     handleResponse(this);
   });
 
-  // ★★★ ページ読み込み時のデバッグ ★★★
-  window.addEventListener('load', () => {
-    console.log('🔍 Turnstile API loaded:', typeof window.turnstile !== 'undefined');
-    console.log('🔍 Submit button disabled:', document.getElementById('submitBtn').disabled);
-    
-    // 5秒後にTurnstileが読み込まれているか確認
-    setTimeout(() => {
-      const turnstileWidget = document.querySelector('.cf-turnstile');
-      const iframe = turnstileWidget?.querySelector('iframe');
-      console.log('🔍 Turnstile widget:', turnstileWidget);
-      console.log('🔍 Turnstile iframe:', iframe);
+  // ★★★ Turnstile 読み込み確認（改善版） ★★★
+  function checkTurnstileLoaded() {
+    return new Promise((resolve) => {
+      let attempts = 0;
+      const maxAttempts = 20; // 10秒間チェック（0.5秒 × 20回）
       
-      if (!iframe) {
-        showError('セキュリティ認証ウィジェットの読み込みに失敗しました。ページを再読み込みしてください。');
-      }
-    }, 5000);
+      const checkInterval = setInterval(() => {
+        attempts++;
+        console.log(`🔍 Turnstile チェック試行 ${attempts}/${maxAttempts}`);
+        
+        const turnstileWidget = document.querySelector('.cf-turnstile');
+        const iframe = turnstileWidget?.querySelector('iframe');
+        
+        if (iframe) {
+          console.log('✅ Turnstile ウィジェット読み込み成功');
+          clearInterval(checkInterval);
+          
+          const status = document.getElementById('turnstileStatus');
+          if (status) {
+            status.textContent = 'チェックボックスをクリックして認証してください';
+            status.style.color = '#666';
+          }
+          
+          resolve(true);
+        } else if (attempts >= maxAttempts) {
+          console.error('❌ Turnstile ウィジェット読み込みタイムアウト');
+          clearInterval(checkInterval);
+          
+          // Sitekey と現在のURL情報を表示
+          console.error('Sitekey:', '0x4AAAAAACLpxaRFTyg2h-wc');
+          console.error('Current URL:', window.location.href);
+          console.error('Current domain:', window.location.hostname);
+          
+          showError('セキュリティ認証ウィジェットの読み込みに失敗しました。\n\n考えられる原因：\n1. Cloudflare Turnstile の Sitekey が間違っている\n2. 現在のドメイン（' + window.location.hostname + '）が Cloudflare に登録されていない\n3. インターネット接続が不安定\n\nページを再読み込みするか、しばらく待ってから再度お試しください。');
+          
+          resolve(false);
+        }
+      }, 500); // 0.5秒ごとにチェック
+    });
+  }
+
+  // ページ読み込み完了後にチェック開始
+  window.addEventListener('load', () => {
+    console.log('🌐 ページ読み込み完了');
+    console.log('🔍 Turnstile API:', typeof window.turnstile !== 'undefined' ? '読み込み済み' : '未読み込み');
+    console.log('🔍 Submit button disabled:', document.getElementById('submitBtn').disabled);
+    console.log('🔍 Current domain:', window.location.hostname);
+    
+    // Turnstile読み込みチェック開始
+    checkTurnstileLoaded();
   });
 </script>
 </body>
