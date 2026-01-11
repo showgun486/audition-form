@@ -214,7 +214,7 @@
 
     <div class="error-box" id="errorBox"></div>
 
-    <form id="auditionForm" method="POST" action="https://script.google.com/macros/s/AKfycbyZ21SJ-hTgVsgCahk3Qcs942AEciNPnYfNacHm--B55Vge1g6pV4DNrvdIvZ_g69X8/exec">
+    <form id="auditionForm" method="POST" action="https://script.google.com/macros/s/AKfycbxADwdmQUssZI8nXRMMFg7uguw7HifD7-B5FQdtjAhrztUiHQiGD8AXiFrrkK0zLxsR/exec">
       <input type="hidden" name="cf-turnstile-response" id="cf-turnstile-response">
       <input type="text" name="company" style="display:none" autocomplete="off" tabindex="-1" />
 
@@ -418,7 +418,9 @@
       <div id="turnstile-container" style="margin: 20px 0;">
         <div class="cf-turnstile"
              data-sitekey="0x4AAAAAACLq56whE3phbRo-"
-             data-callback="turnstileVerified"></div>
+             data-callback="turnstileVerified"
+             data-action="audition_submit">
+             </div>
         <div class="file-status" id="turnstileStatus" style="color: #ff4444;">認証が必要です</div>
       </div>
 
@@ -511,8 +513,7 @@
     </div>
   </div>
 </div>
-  
-<script>
+  <script>
   // セクション切替
   function showSection(id){
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -527,150 +528,146 @@
     if (el) el.style.display = show ? 'block' : 'none';
   }
 
-  // 画像をBase64に変換
+  // 画像をBase64に変換（3MB制限）
   function encodeFile(input, base64Field, mimeField, statusId) {
     const file = input.files[0];
     const statusEl = document.getElementById(statusId);
     if (!file) return;
 
-     const MAX_SIZE = 3 * 1024 * 1024; // 2MB ← ★追加
+    const MAX_SIZE = 3 * 1024 * 1024; // 3MB
+    if (file.size > MAX_SIZE) {
+      alert('ファイルサイズが大きすぎます（3MB以下にしてください）');
+      input.value = '';
+      if (statusEl) statusEl.textContent = "未選択";
+      return;
+    }
 
-  if (file.size > MAX_SIZE) {       // ← ★追加
-    alert('ファイルサイズが大きすぎます（3MB以下にしてください）');
-    input.value = '';
-    statusEl.textContent = "未選択";
-    return;
-  }
-
-    statusEl.textContent = "読み込み中...";
+    if (statusEl) statusEl.textContent = "読み込み中...";
     const reader = new FileReader();
     reader.onload = function(e) {
       const result = e.target.result;
       const splitIdx = result.indexOf(',');
       document.getElementsByName(base64Field)[0].value = result.substring(splitIdx + 1);
       document.getElementsByName(mimeField)[0].value = file.type;
-      statusEl.textContent = "✓ 読み込み完了: " + file.name;
+      if (statusEl) statusEl.textContent = "✓ 読み込み完了: " + file.name;
     };
     reader.readAsDataURL(file);
   }
 
- // Turnstile認証完了時
-window.turnstileVerified = function(token){
-  document.getElementById('cf-turnstile-response').value = token;
+  // 送信ボタンのON/OFF（同意＋Turnstileトークン）
+  function updateSubmitState(){
+    const consentOk = document.getElementById('privacyConsent')?.checked;
+    const token = document.getElementById('cf-turnstile-response')?.value;
+    const submitBtn = document.getElementById('submitBtn');
+    if (!submitBtn) return;
+    submitBtn.disabled = !(consentOk && token);
+  }
 
-  // ボタン状態を更新（同意チェックも加味）
-  updateSubmitState();
+  // Turnstile認証完了時
+  window.turnstileVerified = function(token){
+    document.getElementById('cf-turnstile-response').value = token;
+    updateSubmitState();
 
-  document.getElementById('turnstileStatus').textContent = "✓ 認証完了";
-  document.getElementById('turnstileStatus').style.color = "#73f79c";
-};
+    const st = document.getElementById('turnstileStatus');
+    if (st) {
+      st.textContent = "✓ 認証完了";
+      st.style.color = "#73f79c";
+    }
+  };
 
-  // 同意チェック＆Turnstile状況に応じて送信ボタンを更新
-function updateSubmitState(){
-  const consentOk = document.getElementById('privacyConsent')?.checked;
-  const token = document.getElementById('cf-turnstile-response')?.value;
-  const submitBtn = document.getElementById('submitBtn');
+  document.addEventListener('DOMContentLoaded', () => {
+    // 同意チェック変更
+    const privacyConsent = document.getElementById('privacyConsent');
+    if (privacyConsent) {
+      privacyConsent.addEventListener('change', () => {
+        const ce = document.getElementById('consentError');
+        if (ce) ce.style.display = 'none';
+        updateSubmitState();
+      });
+    }
 
-  if (!submitBtn) return;
-  submitBtn.disabled = !(consentOk && token);
+    // モーダル（プライバシーポリシー）
+    const privacyModal = document.getElementById('privacyModal');
+    const openPrivacy = document.getElementById('openPrivacy');
+    const closePrivacy = document.getElementById('closePrivacy');
 
-  // 同意チェック変更時に送信ボタン状態を更新
-const privacyConsent = document.getElementById('privacyConsent');
-if (privacyConsent) {
-  privacyConsent.addEventListener('change', () => {
-    document.getElementById('consentError').style.display = 'none';
+    if (openPrivacy && privacyModal) {
+      openPrivacy.addEventListener('click', (e) => {
+        e.preventDefault();
+        privacyModal.style.display = 'block';
+      });
+    }
+    if (closePrivacy && privacyModal) {
+      closePrivacy.addEventListener('click', () => {
+        privacyModal.style.display = 'none';
+      });
+    }
+    if (privacyModal) {
+      privacyModal.addEventListener('click', (e) => {
+        if (e.target === privacyModal) privacyModal.style.display = 'none';
+      });
+    }
+
+    // フォーム送信
+    const form = document.getElementById('auditionForm');
+    const successMessage = document.getElementById('successMessage');
+    const errorBox = document.getElementById('errorBox');
+
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        // 同意未チェックなら送信しない
+        const consentOk = document.getElementById('privacyConsent')?.checked;
+        if (!consentOk) {
+          const ce = document.getElementById('consentError');
+          if (ce) ce.style.display = 'block';
+          return;
+        }
+
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = "送信中...";
+
+        const formData = new FormData(form);
+        const params = new URLSearchParams();
+        formData.forEach((value, key) => params.append(key, value));
+
+        fetch(form.action, {
+          method: 'POST',
+          body: params,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'ok') {
+            successMessage.style.display = 'block';
+            errorBox.style.display = 'none';
+            form.style.display = 'none';
+            window.scrollTo(0, 0);
+          } else {
+            throw new Error(data.reason || 'unknown_error');
+          }
+        })
+        .catch(err => {
+          errorBox.style.display = 'block';
+          errorBox.textContent = '送信失敗: ' + (err?.message || err);
+          submitBtn.disabled = false;
+          submitBtn.textContent = "応募する";
+          console.error(err);
+          window.scrollTo(0, 0);
+        });
+      });
+    }
+
+    // 初期状態反映
     updateSubmitState();
   });
-}
+</script>
 
-  // 同意未チェック時のエラー表示は、送信時のみ出す（普段は出さない）
-}
 
-  // フォーム送信
-  const form = document.getElementById('auditionForm');
-  const successMessage = document.getElementById('successMessage');
-  const errorBox = document.getElementById('errorBox');
-
-  form.addEventListener('submit', e=>{
-    e.preventDefault();
-
-    // 同意未チェックなら送信しない
-const consentOk = document.getElementById('privacyConsent')?.checked;
-if (!consentOk) {
-  const ce = document.getElementById('consentError');
-  if (ce) ce.style.display = 'block';
-  return;
-}
-    
-    const submitBtn = document.getElementById('submitBtn');
-    submitBtn.disabled = true;
-    submitBtn.textContent = "送信中...";
-
-    // GASのe.parameterで受け取るためにURLSearchParamsを使用
-    const formData = new FormData(form);
-    const params = new URLSearchParams();
-    formData.forEach((value, key) => {
-      params.append(key, value);
-    });
-
-    fetch(form.action, {
-      method: 'POST',
-      body: params,
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
-    })
-    .then(res => res.json())
-    .then(data => {
-      if(data.status === 'ok'){
-        successMessage.style.display = 'block';
-        errorBox.style.display = 'none';
-        form.style.display = 'none'; // 送信後にフォームを隠す
-        window.scrollTo(0, 0);
-      } else {
-        throw new Error(data.reason);
-      }
-    })
-    .catch(err => {
-      errorBox.style.display = 'block';
-      errorBox.textContent = '送信失敗: ' + err.message;
-      submitBtn.disabled = false;
-      submitBtn.textContent = "応募する";
-      console.error(err);
-    });
-  });
-
-document.addEventListener('DOMContentLoaded', () => {
-  const privacyModal = document.getElementById('privacyModal');
-  const openPrivacy = document.getElementById('openPrivacy');
-  const closePrivacy = document.getElementById('closePrivacy');
-
-  if (openPrivacy && privacyModal) {
-    openPrivacy.addEventListener('click', (e) => {
-      e.preventDefault();
-      privacyModal.style.display = 'block';
-    });
-  }
-
-  if (closePrivacy && privacyModal) {
-    closePrivacy.addEventListener('click', () => {
-      privacyModal.style.display = 'none';
-    });
-  }
-
-  // 背景クリックでも閉じる
-  if (privacyModal) {
-    privacyModal.addEventListener('click', (e) => {
-      if (e.target === privacyModal) privacyModal.style.display = 'none';
-    });
-  }
-});
-
-  
-  // 初期状態反映
-updateSubmitState();
-  
-</script>  
 </body>
 </html>
