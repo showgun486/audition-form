@@ -394,7 +394,27 @@
         <label>今後の活動への想いや、意気込みを自由にご記入ください</label>
         <textarea name="message"></textarea>
       </div>
+<!-- 同意チェック（必須） -->
+<div class="form-group" id="consentBlock">
+  <label style="display:flex;align-items:flex-start;gap:10px;line-height:1.6;">
+    <input type="checkbox" id="privacyConsent" name="privacy_consent" value="agreed" required style="margin-top:4px;">
+    <span>
+      <strong>【必須】</strong>
+      私は、入力した個人情報および提出写真（画像データ）を、オーディションの選考・連絡・運営の目的で取り扱うことに同意します。<br>
+      <a href="privacy.html" target="_blank" rel="noopener noreferrer" style="color:#2a7a44;text-decoration:underline;">
+        プライバシーポリシー（個人情報の取り扱い）を読む
+      </a>
+    </span>
+  </label>
 
+  <div class="hint" style="margin-top:8px;">
+    ※未成年の方は、保護者の同意を得たうえでご応募ください。
+  </div>
+
+  <div class="error-box" id="consentError" style="display:none;margin-top:12px;">
+    送信するには、プライバシーポリシーに同意してください。
+  </div>
+</div>
       <div id="turnstile-container" style="margin: 20px 0;">
         <div class="cf-turnstile"
              data-sitekey="0x4AAAAAACLq56whE3phbRo-"
@@ -449,13 +469,37 @@
     reader.readAsDataURL(file);
   }
 
-  // Turnstile認証完了時
-  window.turnstileVerified = function(token){
-    document.getElementById('cf-turnstile-response').value = token;
-    document.getElementById('submitBtn').disabled = false;
-    document.getElementById('turnstileStatus').textContent = "✓ 認証完了";
-    document.getElementById('turnstileStatus').style.color = "#73f79c";
-  };
+ // Turnstile認証完了時
+window.turnstileVerified = function(token){
+  document.getElementById('cf-turnstile-response').value = token;
+
+  // ボタン状態を更新（同意チェックも加味）
+  updateSubmitState();
+
+  document.getElementById('turnstileStatus').textContent = "✓ 認証完了";
+  document.getElementById('turnstileStatus').style.color = "#73f79c";
+};
+
+  // 同意チェック＆Turnstile状況に応じて送信ボタンを更新
+function updateSubmitState(){
+  const consentOk = document.getElementById('privacyConsent')?.checked;
+  const token = document.getElementById('cf-turnstile-response')?.value;
+  const submitBtn = document.getElementById('submitBtn');
+
+  if (!submitBtn) return;
+  submitBtn.disabled = !(consentOk && token);
+
+  // 同意チェック変更時に送信ボタン状態を更新
+const privacyConsent = document.getElementById('privacyConsent');
+if (privacyConsent) {
+  privacyConsent.addEventListener('change', () => {
+    document.getElementById('consentError').style.display = 'none';
+    updateSubmitState();
+  });
+}
+
+  // 同意未チェック時のエラー表示は、送信時のみ出す（普段は出さない）
+}
 
   // フォーム送信
   const form = document.getElementById('auditionForm');
@@ -464,6 +508,14 @@
 
   form.addEventListener('submit', e=>{
     e.preventDefault();
+
+    // 同意未チェックなら送信しない
+const consentOk = document.getElementById('privacyConsent')?.checked;
+if (!consentOk) {
+  const ce = document.getElementById('consentError');
+  if (ce) ce.style.display = 'block';
+  return;
+}
     
     const submitBtn = document.getElementById('submitBtn');
     submitBtn.disabled = true;
@@ -503,6 +555,10 @@
       console.error(err);
     });
   });
+
+  // 初期状態反映（←ここに貼る）
+updateSubmitState();
+  
 </script>
 </body>
 </html>
