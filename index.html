@@ -401,8 +401,9 @@
     <span>
       <strong>【必須】</strong>
       私は、入力した個人情報および提出写真（画像データ）を、オーディションの選考・連絡・運営の目的で取り扱うことに同意します。<br>
-      <a href="privacy.html" target="_blank" rel="noopener noreferrer" style="color:#2a7a44;text-decoration:underline;">
-        プライバシーポリシー（個人情報の取り扱い）を読む
+<a href="#" id="openPrivacy" style="color:#2a7a44;text-decoration:underline;">
+  プライバシーポリシー（個人情報の取り扱い）を読む
+</a>
       </a>
     </span>
   </label>
@@ -556,9 +557,116 @@ if (!consentOk) {
     });
   });
 
-  // 初期状態反映（←ここに貼る）
+const privacyModal = document.getElementById('privacyModal');
+const openPrivacy = document.getElementById('openPrivacy');
+const closePrivacy = document.getElementById('closePrivacy');
+
+if (openPrivacy && privacyModal) {
+  openPrivacy.addEventListener('click', (e) => {
+    e.preventDefault();
+    privacyModal.style.display = 'block';
+  });
+}
+
+if (closePrivacy && privacyModal) {
+  closePrivacy.addEventListener('click', () => {
+    privacyModal.style.display = 'none';
+  });
+}
+
+// 背景クリックでも閉じる
+if (privacyModal) {
+  privacyModal.addEventListener('click', (e) => {
+    if (e.target === privacyModal) privacyModal.style.display = 'none';
+  });
+}
+  
+  // 初期状態反映
 updateSubmitState();
   
 </script>
+
+<!-- Privacy Modal -->
+<div id="privacyModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:2000;">
+  <div style="max-width:900px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.25);">
+    <div style="background:linear-gradient(135deg,#73f79c 0%,#5de88a 100%);padding:14px 16px;color:#fff;display:flex;justify-content:space-between;align-items:center;">
+      <strong>プライバシーポリシー（個人情報の取り扱い）</strong>
+      <button type="button" id="closePrivacy" style="border:none;background:rgba(255,255,255,.25);color:#fff;padding:8px 12px;border-radius:999px;cursor:pointer;">閉じる</button>
+    </div>
+
+    <div style="padding:16px;max-height:70vh;overflow:auto;line-height:1.9;color:#333;font-size:15px;">
+<p>
+        【運営者名（会社名/団体名/屋号）】（以下「当方」）は、【新アイドルオーディション】の応募受付・選考・運営にあたり、
+        応募者の個人情報を適切に取り扱うため、本ポリシーを定めます。
+      </p>
+      <p class="small">制定日：【20XX年XX月XX日】／最終更新日：【20XX年XX月XX日】</p>
+    </div>
+
+    <h2>1. 取得する情報</h2>
+    <ul>
+      <li>氏名、ふりがな、生年月日、年齢、性別</li>
+      <li>メールアドレス、電話番号</li>
+      <li>現住所（居住地の記載）、出身地、職業等のプロフィール情報</li>
+      <li>SNSアカウント情報、動画URL、YouTubeチャンネルURL等</li>
+      <li>応募フォームに入力された自由記述（自己PR・エピソード等）</li>
+      <li>提出写真（上半身・全身・任意の追加写真）</li>
+      <li>迷惑行為対策のための認証情報（ボット対策認証結果等）</li>
+    </ul>
+
+    <h2>2. 利用目的</h2>
+    <ul>
+      <li>応募受付、本人確認、選考の実施</li>
+      <li>選考結果の連絡、問い合わせ対応、事務連絡</li>
+      <li>不正応募・迷惑行為の防止、セキュリティ確保</li>
+      <li>合格後の手続き・連絡（候補者となった場合を含む）</li>
+    </ul>
+
+    <h2>3. 第三者提供について</h2>
+    <p>
+      当方は、法令に基づく場合を除き、応募者の同意なく個人情報を第三者に提供しません。
+      ただし、本企画の運営に必要な範囲で、当方のスタッフまたは業務委託先に情報を取り扱わせることがあります。
+      この場合、委託先に対して適切な監督を行います。
+    </p>
+
+    <h2>4. 写真（画像データ）の取り扱い</h2>
+    <p>
+      提出いただいた写真は、選考および応募内容確認のために使用します。目的外利用は行いません。
+      取扱い担当者を必要最小限に限定するよう努めます。
+    </p>
+
+    <h2>5. 保管期間</h2>
+    <p>
+      当方は、取得した個人情報を利用目的の達成に必要な期間保管し、その後、当方の規程および法令に従い適切に削除または廃棄します。<br>
+      例：選考終了後【◯か月】を目安に削除
+    </p>
+
+    <h2>6. 安全管理措置（セキュリティ）</h2>
+    <p>
+      当方は、漏えい・滅失・き損・不正アクセス等を防止するため、合理的な安全対策（アクセス権限の制限、二要素認証、迷惑送信対策等）を講じます。
+    </p>
+
+    <h2>7. 開示・訂正・削除等の請求</h2>
+    <p>
+      応募者は、当方が保有するご本人の個人情報について、開示・訂正・追加・削除・利用停止等を求めることができます。
+      ご希望の場合は、下記お問い合わせ先までご連絡ください。ご本人確認のうえ、法令に従い対応します。
+    </p>
+
+    <h2>8. 未成年の応募について</h2>
+    <p>未成年の方は、保護者の同意を得たうえでご応募ください。保護者の同意が確認できない場合、応募を無効とすることがあります。</p>
+
+    <h2>9. お問い合わせ先</h2>
+    <div class="box">
+      <p>【運営者名】</p>
+      <p>【担当者名（任意）】</p>
+      <p>【連絡先メールアドレス】</p>
+      <p>【所在地（任意）】</p>
+    </div>
+
+    <a class="back" href="./">応募フォームへ戻る</a>
+  </div>
+    </div>
+  </div>
+</div>
+  
 </body>
 </html>
