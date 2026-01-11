@@ -370,7 +370,7 @@
         <input type="hidden" name="photo_upper_base64">
         <input type="hidden" name="photo_upper_mime">
         <div class="file-status" id="upperStatus">未選択</div>
-        <div class="hint">※ファイルサイズは2MB以下にしてください。</div>
+        <div class="hint">※ファイルサイズは3MB以下にしてください。</div>
       </div>
 
       <div class="form-group">
@@ -379,7 +379,7 @@
         <input type="hidden" name="photo_full_base64">
         <input type="hidden" name="photo_full_mime">
         <div class="file-status" id="fullStatus">未選択</div>
-        <div class="hint">※ファイルサイズは2MB以下にしてください。</div>
+        <div class="hint">※ファイルサイズは3MB以下にしてください。</div>
       </div>
 
       <div class="form-group">
@@ -388,7 +388,7 @@
         <input type="hidden" name="photo_additional_base64">
         <input type="hidden" name="photo_additional_mime">
         <div class="file-status" id="addStatus">未選択</div>
-        <div class="hint">※ファイルサイズは2MB以下にしてください。</div>
+        <div class="hint">※ファイルサイズは3MB以下にしてください。</div>
       </div>
 
       <div class="form-group">
@@ -429,10 +429,10 @@
     const statusEl = document.getElementById(statusId);
     if (!file) return;
 
-     const MAX_SIZE = 2 * 1024 * 1024; // 2MB ← ★追加
+     const MAX_SIZE = 3 * 1024 * 1024; // 2MB ← ★追加
 
   if (file.size > MAX_SIZE) {       // ← ★追加
-    alert('ファイルサイズが大きすぎます（2MB以下にしてください）');
+    alert('ファイルサイズが大きすぎます（3MB以下にしてください）');
     input.value = '';
     statusEl.textContent = "未選択";
     return;
